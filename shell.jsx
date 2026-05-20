@@ -40,8 +40,7 @@ const Sidebar = ({ active, setActive, lang, open, onClose, onDataClick }) => {
       <SidebarItem icon={I.Wave} label={t("Sounds", "Sonidos")} active={active === "Sounds"} onClick={() => handleNav("Sounds")} />
 
       <div className="nav-group-label">{t("Research", "Investigación")}</div>
-      <SidebarItem icon={I.Leaf} label={t("Lab Notebook", "Cuaderno")} />
-      <SidebarItem icon={I.Note} label={t("Paper Queue", "Lecturas")} badge="5" />
+      <SidebarItem icon={I.Leaf} label={t("Paper Queue", "Lecturas")} active={active === "Papers"} badge="5" onClick={() => handleNav("Papers")} />
 
       <div className="sidebar-foot">
         <div className="avatar">EZ</div>
@@ -184,7 +183,7 @@ const Topbar = ({ lang, setLang, dark, setDark, onMenuClick, onDataClick }) => {
         )}
       </div>
 
-      <div className="search">
+      <div className="search" style={{ cursor: "text", opacity: 0.7 }}>
         <I.Search size={14} />
         <span>{t("Search anything", "Buscar")}</span>
         <kbd>⌘K</kbd>
@@ -204,9 +203,6 @@ const Topbar = ({ lang, setLang, dark, setDark, onMenuClick, onDataClick }) => {
           <path d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6" />
           <path d="M4 12v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6" />
         </svg>
-      </button>
-      <button className="icon-btn" title={t("Notifications", "Notificaciones")}>
-        <I.Bell size={16} />
       </button>
     </header>
   );

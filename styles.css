@@ -1004,6 +1004,164 @@ body.dark .btn-danger:hover {
   border-color: #4a2f24;
 }
 
+/* ============================================
+   Modal forms
+   ============================================ */
+.modal {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md), 0 24px 64px rgba(0,0,0,0.18);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 200;
+  animation: dataMenuIn 0.22s ease-out;
+}
+.modal-body { display: flex; flex-direction: column; gap: 14px; }
+.modal-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+  margin-top: 4px;
+}
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+.field-input {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 9px 12px;
+  font-size: 13.5px;
+  font-family: var(--font-sans);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  width: 100%;
+}
+.field-input:focus {
+  border-color: var(--sage-deep);
+  background: var(--surface);
+}
+.field-textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.55;
+  font-family: var(--font-sans);
+}
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+select.field-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%237a8278' stroke-width='1.6' stroke-linecap='round'><path d='M2 4l4 4 4-4'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+.field-radio { display: flex; flex-wrap: wrap; gap: 6px; }
+.radio-pill {
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.radio-pill:hover { border-color: var(--muted); color: var(--ink-soft); }
+.radio-pill.active {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 500;
+  border-width: 1.5px;
+}
+
+.color-row { display: flex; gap: 8px; }
+.color-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.15s;
+}
+.color-dot:hover { transform: scale(1.1); }
+.color-dot.active {
+  border-color: var(--ink);
+  transform: scale(1.1);
+}
+
+/* ============================================
+   Single-module view (when sidebar tab is open)
+   ============================================ */
+.content.single-view {
+  grid-template-columns: 1fr;
+  max-width: 920px;
+}
+.content.single-view > .card {
+  grid-column: span 1;
+}
+.view-head {
+  padding: 4px 4px 12px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.view-title {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.view-sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Todo edit button */
+.row-edit-btn {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+  color: var(--muted-2);
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+}
+.todo:hover .row-edit-btn { opacity: 1; }
+.row-edit-btn:hover { background: var(--surface-sunken); color: var(--ink-soft); }
+
+/* Stop edit-btn from auto-showing on touch devices */
+@media (hover: none) {
+  .row-edit-btn { opacity: 1; }
+}
+
+/* mobile modal sizing */
+@media (max-width: 720px) {
+  .modal { padding: 18px; gap: 10px; }
+  .field-row { grid-template-columns: 1fr; gap: 8px; }
+}
+
 /* Pulse for active timer indicator */
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 1; }

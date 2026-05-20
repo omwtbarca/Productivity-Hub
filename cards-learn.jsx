@@ -52,7 +52,7 @@ const SRS_LABELS = {
   easy: { en: "4d", es: "4d" },
 };
 
-const FlashcardCard = ({ lang, flashcards, setFlashcards }) => {
+const FlashcardCard = ({ lang, flashcards, setFlashcards, fullWidth }) => {
   const [deckId, setDeckId] = useStateB("spanishA2");
   const [idx, setIdx] = useStateB(0);
   const [revealed, setRevealed] = useStateB(false);
@@ -74,7 +74,7 @@ const FlashcardCard = ({ lang, flashcards, setFlashcards }) => {
   const totalDue = 14;
 
   return (
-    <div className="card col-4">
+    <div className={"card " + (fullWidth ? "col-12" : "col-4")}>
       <div className="card-head">
         <div>
           <div className="card-title">
@@ -178,7 +178,7 @@ const SOUND_PRESETS = [
   { id: "brown", icon: "Wave", name: { en: "Brown noise", es: "Ruido marrón" } },
 ];
 
-const SoundsCard = ({ lang }) => {
+const SoundsCard = ({ lang, fullWidth }) => {
   const [active, setActive] = useStateB(null);
   const [volume, setVolume] = useStateB(0.6);
 
@@ -200,7 +200,7 @@ const SoundsCard = ({ lang }) => {
   const activePreset = SOUND_PRESETS.find(p => p.id === active);
 
   return (
-    <div className="card col-4 card-dark">
+    <div className={"card card-dark " + (fullWidth ? "col-12" : "col-4")}>
       <div className="card-head">
         <div>
           <div className="card-title" style={{ color: "white" }}>
@@ -213,7 +213,6 @@ const SoundsCard = ({ lang }) => {
             {active ? (lang === "ES" ? activePreset.name.es + " · sonando" : activePreset.name.en + " · playing") : tB(lang, "Procedural · works offline", "Procedural · sin red")}
           </div>
         </div>
-        <button className="card-action" style={{ color: "#a9aea4" }}>{tB(lang, "Library →", "Biblioteca →")}</button>
       </div>
 
       <div className="sound-grid">
@@ -255,13 +254,13 @@ const SoundsCard = ({ lang }) => {
 /* ============================================
    PAPERS  — persisted progress + dynamic dates
    ============================================ */
-const PapersCard = ({ lang, papers, setPapers }) => {
+const PapersCard = ({ lang, papers, setPapers, fullWidth }) => {
   const advance = (id) => {
     setPapers((arr) => arr.map(p => p.id === id ? { ...p, read: Math.min(100, p.read + 10) } : p));
   };
 
   return (
-    <div className="card col-4">
+    <div className={"card " + (fullWidth ? "col-12" : "col-4")}>
       <div className="card-head">
         <div>
           <div className="card-title">
@@ -274,7 +273,6 @@ const PapersCard = ({ lang, papers, setPapers }) => {
             {tB(lang, `${papers.length} to read · click +10%`, `${papers.length} por leer · clic = +10%`)}
           </div>
         </div>
-        <button className="card-action">{tB(lang, "All →", "Todos →")}</button>
       </div>
 
       {papers.map((p, i) => (

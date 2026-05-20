@@ -70,9 +70,9 @@ PHub.seeds = {
 /* ============================================
    POMODORO
    ============================================ */
-const POMO_WORK = 25 * 60;
-const POMO_BREAK = 5 * 60;
-const POMO_LONG = 15 * 60;
+const POMO_WORK = 55 * 60;
+const POMO_BREAK = 10 * 60;
+const POMO_LONG = 20 * 60;
 
 const PomoRing = ({ progress = 0 }) => {
   const r = 76;
@@ -98,7 +98,7 @@ const PomoRing = ({ progress = 0 }) => {
 const fmtTime = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 const pad = (n) => String(n).padStart(2, "0");
 
-const PomodoroCard = ({ lang, pomodoro, setPomodoro }) => {
+const PomodoroCard = ({ lang, pomodoro, setPomodoro, fullWidth }) => {
   const [mode, setMode] = useState("work");
   const [running, setRunning] = useState(false);
   const [remaining, setRemaining] = useState(POMO_WORK);
@@ -155,7 +155,7 @@ const PomodoroCard = ({ lang, pomodoro, setPomodoro }) => {
                   : tT(lang, "Short break", "Descanso corto");
 
   return (
-    <div className="card col-7 card-tinted-sage" style={{ gap: 0 }}>
+    <div className={"card card-tinted-sage " + (fullWidth ? "col-12" : "col-7")} style={{ gap: 0 }}>
       <div className="card-head" style={{ marginBottom: 12 }}>
         <div>
           <div className="card-title">
@@ -221,7 +221,7 @@ const useNow = (interval = 1000) => {
   return n;
 };
 
-const CountdownCard = ({ lang, events }) => {
+const CountdownCard = ({ lang, events, setEvents, onAdd, fullWidth }) => {
   const now = useNow(1000);
   // Sort events by date, pick the soonest as the main one
   const sorted = [...events].map(e => ({ ...e, when: new Date(e.dateTime) }))
@@ -232,9 +232,19 @@ const CountdownCard = ({ lang, events }) => {
 
   if (!main) {
     return (
-      <div className="card col-5">
-        <div className="card-head"><div><div className="card-title"><span className="ico-bubble"><I.Bell size={13} /></span>{tT(lang, "Upcoming", "Próximos")}</div></div></div>
-        <div style={{ color: "var(--muted)", fontSize: 12 }}>{tT(lang, "No upcoming events.", "Sin eventos próximos.")}</div>
+      <div className={"card " + (fullWidth ? "col-12" : "col-5")}>
+        <div className="card-head">
+          <div>
+            <div className="card-title">
+              <span className="ico-bubble" style={{ background: "var(--sand-soft)", color: "#8a6a32" }}>
+                <I.Bell size={13} />
+              </span>
+              {tT(lang, "Upcoming", "Próximos")}
+            </div>
+          </div>
+          <button className="card-action" onClick={onAdd}><I.Plus size={12} /> {tT(lang, "Add", "Añadir")}</button>
+        </div>
+        <div style={{ color: "var(--muted)", fontSize: 12 }}>{tT(lang, "No upcoming events. Click + Add to create one.", "Sin eventos. Clic + Añadir.")}</div>
       </div>
     );
   }
@@ -248,7 +258,7 @@ const CountdownCard = ({ lang, events }) => {
   const timeLabel = main.when.toLocaleTimeString(lang === "ES" ? "es-ES" : "en-US", { hour: "2-digit", minute: "2-digit" });
 
   return (
-    <div className="card col-5">
+    <div className={"card " + (fullWidth ? "col-12" : "col-5")}>
       <div className="card-head">
         <div>
           <div className="card-title">
@@ -261,7 +271,7 @@ const CountdownCard = ({ lang, events }) => {
             {tT(lang, "Live countdown · deadlines · events", "Cuenta atrás en vivo · plazos")}
           </div>
         </div>
-        <button className="card-action">{tT(lang, "All events →", "Todos →")}</button>
+        <button className="card-action" onClick={onAdd}><I.Plus size={12} /> {tT(lang, "Add", "Añadir")}</button>
       </div>
 
       <div>
@@ -294,7 +304,7 @@ const CountdownCard = ({ lang, events }) => {
 /* ============================================
    TASKS  — dynamic due labels
    ============================================ */
-const Task = ({ task, lang, onToggle }) => {
+const Task = ({ task, lang, onToggle, onEdit }) => {
   const due = T.dueLabel(task.dueISO, lang);
   return (
     <div className={"todo" + (task.done ? " done" : "")}>
@@ -307,13 +317,15 @@ const Task = ({ task, lang, onToggle }) => {
       <div className="todo-meta">
         {task.priority && <span className={"tag priority-" + task.priority}>{task.priority === "high" ? "P1" : task.priority === "med" ? "P2" : "P3"}</span>}
         {due && <span className={"tag " + due.cls}>{due.text}</span>}
-        <I.Drag size={14} style={{ color: "var(--muted-2)" }} />
+        <button className="row-edit-btn" onClick={(e) => { e.stopPropagation(); onEdit && onEdit(); }} title={tT(lang, "Edit", "Editar")}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4l4 4-12 12H4v-4z" /></svg>
+        </button>
       </div>
     </div>
   );
 };
 
-const TasksCard = ({ lang, tasks, setTasks }) => {
+const TasksCard = ({ lang, tasks, setTasks, onAdd, onEdit, fullWidth }) => {
   const [filter, setFilter] = useState("all");
   const tabs = [
     { id: "all", en: "All", es: "Todas" },
@@ -339,7 +351,7 @@ const TasksCard = ({ lang, tasks, setTasks }) => {
   const totalAll = tasks.items.length;
 
   return (
-    <div className="card col-7">
+    <div className={"card " + (fullWidth ? "col-12" : "col-7")}>
       <div className="card-head">
         <div>
           <div className="card-title">
@@ -372,7 +384,7 @@ const TasksCard = ({ lang, tasks, setTasks }) => {
                 <span className="count">{done} / {groupItems.length}</span>
               </div>
               {groupItems.map((task) => (
-                <Task key={task.id} task={task} lang={lang} onToggle={() => toggle(task.id)} />
+                <Task key={task.id} task={task} lang={lang} onToggle={() => toggle(task.id)} onEdit={() => onEdit && onEdit(task)} />
               ))}
             </React.Fragment>
           );
@@ -384,7 +396,7 @@ const TasksCard = ({ lang, tasks, setTasks }) => {
         )}
       </div>
 
-      <button className="btn" style={{ alignSelf: "flex-start" }}>
+      <button className="btn" style={{ alignSelf: "flex-start" }} onClick={onAdd}>
         <I.Plus size={13} /> {tT(lang, "Add task", "Añadir tarea")}
       </button>
     </div>
@@ -404,7 +416,7 @@ const computeStreak = (checks) => {
   return count;
 };
 
-const HabitsCard = ({ lang, habits, setHabits }) => {
+const HabitsCard = ({ lang, habits, setHabits, onAdd, fullWidth }) => {
   const dates = T.last7DaysISO();
   const letters = T.last7DayLetters(lang);
 
@@ -421,7 +433,7 @@ const HabitsCard = ({ lang, habits, setHabits }) => {
   };
 
   return (
-    <div className="card col-5">
+    <div className={"card " + (fullWidth ? "col-12" : "col-5")}>
       <div className="card-head">
         <div>
           <div className="card-title">
@@ -434,7 +446,6 @@ const HabitsCard = ({ lang, habits, setHabits }) => {
             {tT(lang, "Tap to log · cycles empty → half → full", "Toca para marcar")}
           </div>
         </div>
-        <button className="card-action">{tT(lang, "All →", "Todos →")}</button>
       </div>
 
       <div>
@@ -468,7 +479,7 @@ const HabitsCard = ({ lang, habits, setHabits }) => {
         })}
       </div>
 
-      <button className="btn" style={{ alignSelf: "flex-start" }}>
+      <button className="btn" style={{ alignSelf: "flex-start" }} onClick={onAdd}>
         <I.Plus size={13} /> {tT(lang, "New habit", "Nuevo hábito")}
       </button>
     </div>
@@ -489,7 +500,7 @@ const Bar = ({ h, val, day, today }) => (
   </div>
 );
 
-const StatsCard = ({ lang, pomodoro }) => {
+const StatsCard = ({ lang, pomodoro, fullWidth }) => {
   const [scope, setScope] = useState("week");
   const tabs = [
     { id: "week", en: "Week", es: "Semana" },
@@ -507,12 +518,12 @@ const StatsCard = ({ lang, pomodoro }) => {
   const allTotal = allDays.reduce((a, d) => a + pomodoro.daily[d], 0);
   const targetDays = vals.filter(v => v >= 4).length;
   const targetPct = Math.round(targetDays / 7 * 100);
-  const totalMin = weekTotal * 25;
+  const totalMin = weekTotal * 55;
   const focusH = Math.floor(totalMin / 60);
   const focusM = totalMin % 60;
 
   return (
-    <div className="card col-7">
+    <div className={"card " + (fullWidth ? "col-12" : "col-7")}>
       <div className="card-head">
         <div>
           <div className="card-title">
@@ -568,7 +579,7 @@ const StatsCard = ({ lang, pomodoro }) => {
 /* ============================================
    NOTES — dynamic dates
    ============================================ */
-const NotesCard = ({ lang, notes }) => {
+const NotesCard = ({ lang, notes, onAdd, onEdit, fullWidth }) => {
   const [hover, setHover] = useState(null);
   const tagStyle = (c) => {
     if (c === "sage") return { background: "var(--sage-soft)", color: "var(--sage-deep)" };
@@ -577,7 +588,7 @@ const NotesCard = ({ lang, notes }) => {
     return {};
   };
   return (
-    <div className="card col-5">
+    <div className={"card " + (fullWidth ? "col-12" : "col-5")}>
       <div className="card-head">
         <div>
           <div className="card-title">
@@ -590,7 +601,7 @@ const NotesCard = ({ lang, notes }) => {
             {tT(lang, `Markdown · ${notes.length} notes · stored locally`, `Markdown · ${notes.length} notas · locales`)}
           </div>
         </div>
-        <button className="card-action"><I.Plus size={12} /> {tT(lang, "New", "Nueva")}</button>
+        <button className="card-action" onClick={onAdd}><I.Plus size={12} /> {tT(lang, "New", "Nueva")}</button>
       </div>
 
       <div className="note-grid">
@@ -598,6 +609,7 @@ const NotesCard = ({ lang, notes }) => {
           <div
             key={n.id}
             className="note-card"
+            onClick={() => onEdit && onEdit(n)}
             onMouseEnter={() => setHover(n.id)}
             onMouseLeave={() => setHover(null)}
             style={{ cursor: "pointer", transform: hover === n.id ? "translateY(-2px)" : "none", transition: "transform 0.15s, box-shadow 0.15s", boxShadow: hover === n.id ? "var(--shadow-md)" : "none" }}
