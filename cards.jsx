@@ -821,6 +821,8 @@ const NotesCard = ({ lang, notes, onAdd, onEdit, fullWidth }) => {
    ============================================ */
 const QuadrantPanel = ({ qid, qDef, tasks, lang, onTaskClick, onEditTask }) => {
   const tag = qid.toUpperCase();
+  const [expanded, setExpanded] = useState(false);
+  const visibleTasks = expanded ? tasks : tasks.slice(0, 5);
   return (
     <div className="quad" style={{ background: qDef.soft, borderColor: qDef.soft }}>
       <div className="quad-head">
@@ -837,7 +839,7 @@ const QuadrantPanel = ({ qid, qDef, tasks, lang, onTaskClick, onEditTask }) => {
         {tasks.length === 0 ? (
           <div className="quad-empty">— {tT(lang, "Empty", "Vacío")}</div>
         ) : (
-          tasks.slice(0, 5).map(t => (
+          visibleTasks.map(t => (
             <div key={t.id} className={"quad-task" + (t.done ? " done" : "")}>
               <button className="quad-check" onClick={(e) => { e.stopPropagation(); onTaskClick(t.id); }}
                       style={{ borderColor: t.done ? qDef.color : "var(--muted-2)", background: t.done ? qDef.color : "transparent" }}>
@@ -848,7 +850,9 @@ const QuadrantPanel = ({ qid, qDef, tasks, lang, onTaskClick, onEditTask }) => {
           ))
         )}
         {tasks.length > 5 && (
-          <div className="quad-more">+ {tasks.length - 5} {tT(lang, "more", "más")}</div>
+          <button className="quad-more" onClick={() => setExpanded(!expanded)} style={{ color: qDef.deep }}>
+            {expanded ? tT(lang, "▴ Show less", "▴ Mostrar menos") : tT(lang, `▾ Show ${tasks.length - 5} more`, `▾ Ver ${tasks.length - 5} más`)}
+          </button>
         )}
       </div>
     </div>
