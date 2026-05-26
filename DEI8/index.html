@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEI8 SECM & LSB 机制 - 交互式甘特图</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.css">
+    
+    <style>
+        :root {
+            --color-green: #2ecc71;
+            --color-blue: #3498db;
+            --color-red: #e74c3c;
+            --color-light-grey: #f1f5f7;
+            --color-border: #e9ecef;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #343a40;
+            text-align: center;
+            flex-shrink: 0;
+            margin: 0 0 15px 0;
+        }
+        .content-wrapper {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        .panel {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+        .panel h2 {
+            margin: 0;
+            padding: 20px 20px 15px 20px;
+            border-bottom: 2px solid var(--color-border);
+            color: #495057;
+            flex-shrink: 0;
+        }
+
+        /* --- 左侧面板 --- */
+        #left-panel h3 {
+            padding: 10px 20px;
+            margin: 0;
+            font-size: 16px;
+            color: #34495e;
+            border-bottom: 1px solid var(--color-border);
+            flex-shrink: 0;
+        }
+        #todo-list {
+            padding: 10px 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        #todo-list ul { list-style-type: none; padding-left: 0; margin: 0; }
+        #todo-list li { padding: 8px 0; border-bottom: 1px solid var(--color-light-grey); font-size: 14px; }
+        #todo-list .empty-message { color: #7f8c8d; font-style: italic; }
+        #todo-list .task-overdue { color: var(--color-red); font-weight: bold; }
+        
+        #editor-wrapper {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        #editor {
+            width: 100%;
+            flex-grow: 1;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            resize: none;
+        }
+        #renderBtn {
+            padding: 12px;
+            margin-top: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+	    font-size: 24px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* --- 右侧面板 --- */
+        #right-panel {
+            display: flex;
+            flex-direction: column;
+        }
+        #gantt-container {
+            flex-grow: 1;
+            overflow: auto;
+            position: relative;
+        }
+        
+        /* 粘性表头的关键CSS */
+        #gantt-container .grid-header {
+            position: relative; /* JS会动态改变transform, sticky在这里不再需要 */
+            background: white;
+            z-index: 10;
+        }
+        /* 当日高亮线加粗加强调 */
+        #gantt-container .today-highlight {
+            stroke: var(--color-red);
+            stroke-width: 2px;
+        }
+
+        /* --- 颜色状态 --- */
+        .bar-upcoming .bar { fill: var(--color-green); }
+        .bar-completed .bar { fill: var(--color-blue); }
+        .bar-overdue .bar { fill: var(--color-red); }
+
+        /* --- Split.js 拖拽条样式 --- */
+        .gutter { background-color: #e9ecef; }
+        .gutter.gutter-horizontal { cursor: col-resize; }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <h1>💎DEI8 TimeLine📌</h1>
+
+        <div class="content-wrapper">
+            <div class="panel" id="left-panel">
+                <h2>Editing🎉</h2>
+                <h3>To-do list</h3>
+                <div id="todo-list"></div>
+                <div id="editor-wrapper">
+                    <textarea id="editor">
+gantt
+    title DEI8 SECM & LSB Mechanism
+    dateFormat<y_bin_564>-MM-DD
+    
+    section SECM & LSB Parameter Design
+        统一参数设计（E/S, 硫负载） :active, p1, 2025-06-23, 5d
+        SECM电解液控制验证 :done, p2, after p1, 7d
+        硫负载密度表征（XPS/EDS） :p3, after p2, 5d
+        CV数据单位优化（mA/cm²/mg） :p4, after p1, 3d
+        SECM测试参数优化（探针、距离） :crit, p5, after p3, 10d
+        数据分析与报告 :done, p6, after p5, 2d
+</textarea>
+                    <button id="renderBtn">Update🔁</button>
+                </div>
+            </div>
+            <div class="panel" id="right-panel">
+                <h2>Chart preview😁</h2>
+                <div id="gantt-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
+    <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
+
+    <script>
+        const editor = document.getElementById('editor');
+        const ganttContainer = document.getElementById('gantt-container');
+        const todoListContainer = document.getElementById('todo-list');
+        const renderBtn = document.getElementById('renderBtn');
+        
+        Split(['#left-panel', '#right-panel'], { sizes: [35, 65], minSize: 350, gutterSize: 8 });
+        
+        function parseAndClassifyTasks(mermaidCode) {
+            const lines = mermaidCode.split('\n');
+            const taskMap = new Map();
+            const today = new Date("2025-06-23T12:00:00"); // 使用当前上下文时间
+            today.setHours(0, 0, 0, 0);
+
+            lines.forEach(line => {
+                line = line.trim();
+                const taskMatch = line.match(/^([^:]+):\s*(.*?)\s*$/);
+                if (!taskMatch || /^(gantt|title|dateFormat|section)/i.test(taskMatch[1].trim())) return;
+                const name = taskMatch[1].trim();
+                const details = taskMatch[2].split(',').map(s => s.trim());
+                const id = details.find(d => !/^(active|crit|done|milestone|after|^\d{4}-\d{2}-\d{2}$|^\d+d$)/i.test(d));
+                if (!id) return;
+                const startStr = details.find(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
+                const duration = parseInt(details.find(d => /^\d+d$/.test(d)) || '1', 10);
+                const dependencies = details.find(d => d.startsWith('after '))?.replace('after ', '').split(' ');
+                const isCompleted = details.some(d => d.toLowerCase() === 'done');
+                taskMap.set(id, { id, name, start_str: startStr, duration, dependencies, isCompleted });
+            });
+
+            function getTaskDates(taskId) {
+                const task = taskMap.get(taskId);
+                if (!task || task.start) return task;
+                let startDate;
+                if (task.dependencies) {
+                    const parentTask = getTaskDates(task.dependencies[0]);
+                    if (parentTask && parentTask.end) {
+                        startDate = new Date(parentTask.end);
+                        startDate.setDate(startDate.getDate() + 1);
+                    }
+                } 
+                if (!startDate && task.start_str) { startDate = new Date(task.start_str); }
+                if (!startDate) { startDate = new Date(); }
+                const endDate = new Date(startDate);
+                endDate.setDate(endDate.getDate() + task.duration - 1);
+                task.start = startDate.toISOString().split('T')[0];
+                task.end = endDate.toISOString().split('T')[0];
+                if (task.isCompleted) {
+                    task.custom_class = 'bar-completed';
+                    task.status = 'COMPLETED';
+                } else if (endDate < today) {
+                    task.custom_class = 'bar-overdue';
+                    task.status = 'OVERDUE';
+                } else {
+                    task.custom_class = 'bar-upcoming';
+                    task.status = 'UPCOMING';
+                }
+                return task;
+            }
+
+            for (const id of taskMap.keys()) getTaskDates(id);
+            const tasks = Array.from(taskMap.values());
+            const overdueTasks = tasks.filter(t => t.status === 'OVERDUE');
+            return { frappeTasks: tasks, overdueTasks };
+        }
+
+        function renderTodoList(tasks) {
+            todoListContainer.innerHTML = '';
+            const ul = document.createElement('ul');
+            if (tasks.length > 0) {
+                tasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.textContent = task.name;
+                    li.className = 'task-overdue';
+                    ul.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = '暂无过期任务';
+                li.className = 'empty-message';
+                ul.appendChild(li);
+            }
+            todoListContainer.appendChild(ul);
+        }
+
+        function renderChart() {
+            try {
+                const { frappeTasks, overdueTasks } = parseAndClassifyTasks(editor.value);
+                renderTodoList(overdueTasks);
+                ganttContainer.innerHTML = '';
+                
+                if (frappeTasks.length > 0) {
+                    const gantt = new Gantt(ganttContainer, frappeTasks, {
+                        header_height: 50,
+                        bar_height: 25,
+                        padding: 20,
+                        view_modes: ['Day', 'Week', 'Month'],
+                        view_mode: 'Week',
+                    });
+                    
+                    // 粘性表头的最终解决方案
+                    const observer = new MutationObserver(() => {
+                        const header = ganttContainer.querySelector('.grid-header');
+                        if (header) {
+                            ganttContainer.onscroll = () => {
+                                header.style.transform = `translateY(${ganttContainer.scrollTop}px)`;
+                            };
+                            // 初始执行一次，防止加载时表头位置不对
+                            header.style.transform = `translateY(${ganttContainer.scrollTop}px)`;
+                            observer.disconnect(); // 找到并绑定后即可断开，避免不必要的重复执行
+                        }
+                    });
+
+                    // 监视图表容器，等待Gantt图表SVG被插入
+                    observer.observe(ganttContainer, { childList: true });
+
+                } else {
+                     ganttContainer.innerHTML = '<p style="text-align:center;">没有可渲染的任务。</p>';
+                }
+            } catch (error) {
+                ganttContainer.innerHTML = `<pre style="color: red;">${error.message}</pre>`;
+            }
+        }
+        
+        renderBtn.addEventListener('click', renderChart);
+        document.addEventListener('DOMContentLoaded', renderChart);
+    </script>
+</body>
+</html>
